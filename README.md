@@ -22,8 +22,8 @@ A beautiful, modern weather application built with React, TypeScript, and Tailwi
 
 1. **Clone the repository**
    ```bash
-   git clone <YOUR_REPOSITORY_URL>
-   cd <YOUR_PROJECT_NAME>
+   git clone https://github.com/Can-Ozan/Weather-App.git
+   cd Weather-App
    ```
 
 2. **Install dependencies**
@@ -36,8 +36,6 @@ A beautiful, modern weather application built with React, TypeScript, and Tailwi
    npm run dev
    ```
 
-4. **Open your browser**
-   Navigate to `http://localhost:5173` to view the application.
 
 ## 🛠️ Development
 
