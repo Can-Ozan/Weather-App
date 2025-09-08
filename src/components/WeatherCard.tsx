@@ -2,14 +2,21 @@ import { Card } from '@/components/ui/card';
 import { WeatherData } from '@/types/weather';
 import { weatherService } from '@/lib/weather';
 import { MapPin, Eye, Droplets, Wind, Gauge } from 'lucide-react';
+import { memo, useMemo } from 'react';
 
 interface WeatherCardProps {
   weather: WeatherData;
 }
 
-export const WeatherCard = ({ weather }: WeatherCardProps) => {
-  const isDay = weather.dt > weather.sys.sunrise && weather.dt < weather.sys.sunset;
-  const backgroundClass = weatherService.getWeatherBackground(weather.weather[0].main, isDay);
+export const WeatherCard = memo(({ weather }: WeatherCardProps) => {
+  const { isDay, backgroundClass, iconUrl } = useMemo(() => {
+    const dayStatus = weather.dt > weather.sys.sunrise && weather.dt < weather.sys.sunset;
+    return {
+      isDay: dayStatus,
+      backgroundClass: weatherService.getWeatherBackground(weather.weather[0].main, dayStatus),
+      iconUrl: weatherService.getWeatherIcon(weather.weather[0].icon)
+    };
+  }, [weather.dt, weather.sys.sunrise, weather.sys.sunset, weather.weather]);
 
   return (
     <Card className={`glass transition-spring hover:scale-[1.02] overflow-hidden ${backgroundClass}`}>
@@ -26,9 +33,10 @@ export const WeatherCard = ({ weather }: WeatherCardProps) => {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <img
-              src={weatherService.getWeatherIcon(weather.weather[0].icon)}
+              src={iconUrl}
               alt={weather.weather[0].description}
               className="w-20 h-20 drop-shadow-lg"
+              loading="lazy"
             />
             <div>
               <div className="text-5xl font-light mb-2">
@@ -104,4 +112,4 @@ export const WeatherCard = ({ weather }: WeatherCardProps) => {
       </div>
     </Card>
   );
-};
+});

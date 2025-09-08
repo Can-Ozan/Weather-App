@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { Search, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,11 +6,25 @@ import { Card } from '@/components/ui/card';
 import { LocationData } from '@/types/weather';
 import { weatherService } from '@/lib/weather';
 
+// Debounce hook for search optimization
+const useDebounce = (callback: Function, delay: number) => {
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout>();
+
+  const debouncedCallback = useCallback((...args: any[]) => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    
+    const timer = setTimeout(() => callback(...args), delay);
+    setDebounceTimer(timer);
+  }, [callback, delay, debounceTimer]);
+
+  return debouncedCallback;
+};
+
 interface SearchBarProps {
   onLocationSelect: (lat: number, lon: number) => void;
 }
 
-export const SearchBar = ({ onLocationSelect }: SearchBarProps) => {
+export const SearchBar = memo(({ onLocationSelect }: SearchBarProps) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<LocationData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +49,9 @@ export const SearchBar = ({ onLocationSelect }: SearchBarProps) => {
       setIsLoading(false);
     }
   };
+
+  // Debounced search to prevent too many API calls
+  const debouncedSearch = useDebounce(handleSearch, 300);
 
   const handleLocationSelect = (location: LocationData) => {
     onLocationSelect(location.lat, location.lon);
@@ -65,7 +82,7 @@ export const SearchBar = ({ onLocationSelect }: SearchBarProps) => {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              handleSearch(e.target.value);
+              debouncedSearch(e.target.value);
             }}
             className="pl-10 glass border-white/20 text-foreground placeholder:text-muted-foreground"
             onFocus={() => query.length >= 2 && setShowSuggestions(true)}
@@ -114,4 +131,4 @@ export const SearchBar = ({ onLocationSelect }: SearchBarProps) => {
       )}
     </div>
   );
-};
+});

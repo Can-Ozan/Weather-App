@@ -78,16 +78,26 @@ src/
 └── hooks/              # Custom React hooks
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Languages
 
-This project is built with modern web technologies:
+### Frontend Languages & Frameworks
+- **TypeScript** - Primary development language for type safety
+- **TSX/JSX** - React component markup with TypeScript
+- **CSS** - Styling with Tailwind utility classes
+- **HTML** - Semantic markup structure
 
+### Core Technologies
 - **React 18** - Modern React with hooks and functional components
 - **TypeScript** - Type-safe JavaScript for better development experience
 - **Vite** - Fast build tool and development server
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Beautiful and accessible UI components
 - **OpenWeather API** - Real-time weather data
+
+### Development Tools
+- **ESLint** - Code linting and formatting
+- **PostCSS** - CSS processing
+- **Node.js** - JavaScript runtime environment
 
 ## 🚀 Deployment
 

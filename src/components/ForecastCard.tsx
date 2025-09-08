@@ -1,16 +1,19 @@
 import { Card } from '@/components/ui/card';
 import { ForecastData } from '@/types/weather';
 import { weatherService } from '@/lib/weather';
+import { memo, useMemo } from 'react';
 
 interface ForecastCardProps {
   forecast: ForecastData;
 }
 
-export const ForecastCard = ({ forecast }: ForecastCardProps) => {
-  // Group forecast by day (take one entry per day)
-  const dailyForecast = forecast.list.filter((item, index) => 
-    index === 0 || new Date(item.dt * 1000).getDate() !== new Date(forecast.list[index - 1].dt * 1000).getDate()
-  ).slice(0, 5);
+export const ForecastCard = memo(({ forecast }: ForecastCardProps) => {
+  // Group forecast by day (take one entry per day) - memoized for performance
+  const dailyForecast = useMemo(() => {
+    return forecast.list.filter((item, index) => 
+      index === 0 || new Date(item.dt * 1000).getDate() !== new Date(forecast.list[index - 1].dt * 1000).getDate()
+    ).slice(0, 5);
+  }, [forecast.list]);
 
   return (
     <Card className="glass transition-spring hover:scale-[1.01]">
@@ -28,6 +31,7 @@ export const ForecastCard = ({ forecast }: ForecastCardProps) => {
                   src={weatherService.getWeatherIcon(day.weather[0].icon)}
                   alt={day.weather[0].description}
                   className="w-12 h-12"
+                  loading="lazy"
                 />
                 <div>
                   <div className="font-medium text-foreground">
@@ -59,4 +63,4 @@ export const ForecastCard = ({ forecast }: ForecastCardProps) => {
       </div>
     </Card>
   );
-};
+});

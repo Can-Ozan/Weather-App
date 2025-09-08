@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { WeatherData, ForecastData } from '@/types/weather';
 import { weatherService } from '@/lib/weather';
+import { preloadWeatherIcons } from '@/lib/preloader';
 import { WeatherCard } from '@/components/WeatherCard';
 import { ForecastCard } from '@/components/ForecastCard';
 import { SearchBar } from '@/components/SearchBar';
@@ -43,6 +44,9 @@ const Index = () => {
   };
 
   useEffect(() => {
+    // Preload weather icons for better performance
+    preloadWeatherIcons();
+    
     const initializeWeather = async () => {
       try {
         const position = await weatherService.getCurrentPosition();
