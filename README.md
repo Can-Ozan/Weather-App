@@ -1,73 +1,150 @@
-# Welcome to your Lovable project
+# Modern Weather App
 
-## Project info
+A beautiful, modern weather application built with React, TypeScript, and Tailwind CSS. Get real-time weather information and 5-day forecasts for any location worldwide.
 
-**URL**: https://lovable.dev/projects/e9de52b1-fdbc-47f4-b4f4-9572964de11a
+## 🌟 Features
 
-## How can I edit this code?
+- **Real-time Weather Data**: Current temperature, humidity, wind speed, and atmospheric pressure
+- **5-Day Forecast**: Extended weather predictions with detailed daily information
+- **Location Search**: Search for weather information in any city worldwide
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Modern UI/UX**: Glass morphism effects, smooth animations, and intuitive interface
+- **Dynamic Backgrounds**: Weather-responsive background themes
 
-There are several ways of editing your application.
+## 🚀 Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e9de52b1-fdbc-47f4-b4f4-9572964de11a) and start prompting.
+- Node.js (v18 or higher) - [Install via nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- npm or yarn package manager
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. **Clone the repository**
+   ```bash
+   git clone <YOUR_REPOSITORY_URL>
+   cd <YOUR_PROJECT_NAME>
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-Follow these steps:
+4. **Open your browser**
+   Navigate to `http://localhost:5173` to view the application.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🛠️ Development
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Local Development
 
-# Step 3: Install the necessary dependencies.
-npm i
+The project uses Vite for fast development and hot module replacement. Make changes to the code and see them reflected instantly in your browser.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Building for Production
+
+```bash
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+This will create an optimized production build in the `dist` folder.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Code Quality
 
-**Use GitHub Codespaces**
+```bash
+# Run linting
+npm run lint
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Run type checking
+npx tsc --noEmit
+```
 
-## What technologies are used for this project?
+## 📁 Project Structure
 
-This project is built with:
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── WeatherCard.tsx # Main weather display
+│   ├── ForecastCard.tsx # 5-day forecast
+│   └── SearchBar.tsx   # Location search
+├── lib/                # Utility functions
+│   ├── weather.ts      # Weather API integration
+│   └── utils.ts        # General utilities
+├── pages/              # Page components
+├── types/              # TypeScript type definitions
+└── hooks/              # Custom React hooks
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🛠️ Tech Stack
 
-## How can I deploy this project?
+This project is built with modern web technologies:
 
-Simply open [Lovable](https://lovable.dev/projects/e9de52b1-fdbc-47f4-b4f4-9572964de11a) and click on Share -> Publish.
+- **React 18** - Modern React with hooks and functional components
+- **TypeScript** - Type-safe JavaScript for better development experience
+- **Vite** - Fast build tool and development server
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - Beautiful and accessible UI components
+- **OpenWeather API** - Real-time weather data
 
-## Can I connect a custom domain to my Lovable project?
+## 🚀 Deployment
 
-Yes, you can!
+### GitHub Pages
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+1. **Build the project**
+   ```bash
+   npm run build
+   ```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+2. **Deploy to GitHub Pages**
+   ```bash
+   # If using gh-pages package
+   npm install --save-dev gh-pages
+   npm run deploy
+   ```
+
+### Vercel
+
+1. Connect your GitHub repository to Vercel
+2. Vercel will automatically deploy on every push to main branch
+3. Set build command: `npm run build`
+4. Set output directory: `dist`
+
+### Netlify
+
+1. Connect your GitHub repository to Netlify
+2. Set build command: `npm run build`
+3. Set publish directory: `dist`
+4. Deploy automatically on git push
+
+## 🤝 Contributing
+
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Commit your changes**
+   ```bash
+   git commit -m 'Add some amazing feature'
+   ```
+4. **Push to the branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. **Open a Pull Request**
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🐛 Issues & Support
+
+If you encounter any issues or have questions:
+- Open an issue on GitHub
+- Check existing issues for similar problems
+- Provide detailed information about the bug or feature request
