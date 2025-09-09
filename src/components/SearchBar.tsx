@@ -6,6 +6,26 @@ import { Card } from '@/components/ui/card';
 import { LocationData } from '@/types/weather';
 import { weatherService } from '@/lib/weather';
 
+// Ülke kodlarını Türkçe isimlerle eşleştir
+const getCountryName = (countryCode: string): string => {
+  const countryNames: Record<string, string> = {
+    'TR': 'Türkiye',
+    'US': 'Amerika Birleşik Devletleri',
+    'GB': 'Birleşik Krallık',
+    'DE': 'Almanya',
+    'FR': 'Fransa',
+    'IT': 'İtalya',
+    'ES': 'İspanya',
+    'GR': 'Yunanistan',
+    'BG': 'Bulgaristan',
+    'RO': 'Romanya',
+    'UA': 'Ukrayna',
+    'RU': 'Rusya',
+  };
+  
+  return countryNames[countryCode] || countryCode;
+};
+
 // Debounce hook for search optimization
 const useDebounce = (callback: Function, delay: number) => {
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout>();
@@ -40,11 +60,16 @@ export const SearchBar = memo(({ onLocationSelect }: SearchBarProps) => {
     setIsLoading(true);
     try {
       const locations = await weatherService.searchLocation(searchQuery);
-      setSuggestions(locations);
+      // Türkiye sonuçlarını önceliklendir
+      const prioritizedLocations = locations.filter(loc => loc.country === 'TR')
+        .concat(locations.filter(loc => loc.country !== 'TR'));
+      
+      setSuggestions(prioritizedLocations.slice(0, 5));
       setShowSuggestions(true);
     } catch (error) {
       console.error('Search error:', error);
       setSuggestions([]);
+      setShowSuggestions(false);
     } finally {
       setIsLoading(false);
     }
@@ -104,15 +129,27 @@ export const SearchBar = memo(({ onLocationSelect }: SearchBarProps) => {
           <div className="p-2">
             {suggestions.map((location, index) => (
               <button
-                key={index}
+                key={`${location.lat}-${location.lon}-${index}`}
                 onClick={() => handleLocationSelect(location)}
-                className="w-full text-left p-3 rounded-lg hover:bg-white/10 transition-smooth"
+                className="w-full text-left p-3 rounded-lg hover:bg-white/10 transition-smooth group"
               >
-                <div className="font-medium text-foreground">
-                  {location.name}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {location.state && `${location.state}, `}{location.country}
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground group-hover:text-white transition-colors">
+                      {location.name}
+                    </div>
+                    <div className="text-sm text-muted-foreground group-hover:text-white/80">
+                      {location.state && `${location.state}, `}
+                      <span className={location.country === 'TR' ? 'font-medium text-primary' : ''}>
+                        {getCountryName(location.country)}
+                      </span>
+                    </div>
+                  </div>
+                  {location.country === 'TR' && (
+                    <div className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+                      TR
+                    </div>
+                  )}
                 </div>
               </button>
             ))}

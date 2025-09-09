@@ -58,15 +58,41 @@ export const weatherService = {
   },
 
   async searchLocation(query: string): Promise<LocationData[]> {
+    const cacheKey = `search_${query}`;
+    const cached = getCachedData(cacheKey);
+    if (cached) return cached;
+
     const response = await fetch(
-      `${GEO_URL}/direct?q=${encodeURIComponent(query)}&limit=5&appid=${API_KEY}`
+      `${GEO_URL}/direct?q=${encodeURIComponent(query)}&limit=10&appid=${API_KEY}`
     );
     
     if (!response.ok) {
       throw new Error('Konum arama başarısız');
     }
     
-    return response.json();
+    const locations = await response.json();
+    
+    // Türkiye'deki şehirleri önceliklendir ve sonuçları sırala
+    const sortedLocations = locations
+      .sort((a: LocationData, b: LocationData) => {
+        // Türkiye'deki şehirleri önce göster
+        if (a.country === 'TR' && b.country !== 'TR') return -1;
+        if (b.country === 'TR' && a.country !== 'TR') return 1;
+        
+        // İsim eşleşmesine göre sırala (exact match önce)
+        const queryLower = query.toLowerCase();
+        const aNameMatch = a.name.toLowerCase().includes(queryLower);
+        const bNameMatch = b.name.toLowerCase().includes(queryLower);
+        
+        if (aNameMatch && !bNameMatch) return -1;
+        if (bNameMatch && !aNameMatch) return 1;
+        
+        return 0;
+      })
+      .slice(0, 5); // En fazla 5 sonuç
+    
+    setCachedData(cacheKey, sortedLocations);
+    return sortedLocations;
   },
 
   async getCurrentPosition(): Promise<{ lat: number; lon: number }> {
