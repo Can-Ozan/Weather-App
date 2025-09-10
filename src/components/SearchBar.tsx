@@ -21,9 +21,69 @@ const getCountryName = (countryCode: string): string => {
     'RO': 'Romanya',
     'UA': 'Ukrayna',
     'RU': 'Rusya',
+    'PL': 'Polonya',
+    'NL': 'Hollanda',
+    'BE': 'Belçika',
+    'AT': 'Avusturya',
+    'CH': 'İsviçre',
+    'SE': 'İsveç',
+    'NO': 'Norveç',
+    'DK': 'Danimarka',
+    'FI': 'Finlandiya',
+    'IE': 'İrlanda',
+    'PT': 'Portekiz',
+    'CZ': 'Çek Cumhuriyeti',
+    'HU': 'Macaristan',
+    'SK': 'Slovakya',
+    'SI': 'Slovenya',
+    'HR': 'Hırvatistan',
+    'BA': 'Bosna Hersek',
+    'RS': 'Sırbistan',
+    'ME': 'Karadağ',
+    'MK': 'Kuzey Makedonya',
+    'AL': 'Arnavutluk',
   };
   
   return countryNames[countryCode] || countryCode;
+};
+
+// Gelişmiş konum formatı
+const formatLocationDisplay = (location: LocationData): { primary: string; secondary: string; fullName: string } => {
+  const countryName = getCountryName(location.country);
+  
+  // Türkiye için özel formatlar
+  if (location.country === 'TR') {
+    if (location.state && location.state !== location.name) {
+      // İlçe/Mahalle durumu: "Çayırova/Kocaeli"
+      return {
+        primary: location.name,
+        secondary: `${location.state}, ${countryName}`,
+        fullName: `${location.name}, ${location.state}`
+      };
+    } else {
+      // Ana şehir: "İstanbul, Türkiye"
+      return {
+        primary: location.name,
+        secondary: countryName,
+        fullName: `${location.name}, ${countryName}`
+      };
+    }
+  }
+  
+  // Diğer ülkeler için
+  if (location.state && location.state !== location.name) {
+    return {
+      primary: location.name,
+      secondary: `${location.state}, ${countryName}`,
+      fullName: `${location.name}, ${location.state}, ${countryName}`
+    };
+  }
+  
+  return {
+    primary: location.name,
+    secondary: countryName,
+    fullName: `${location.name}, ${countryName}`
+  };
 };
 
 // Debounce hook for search optimization
@@ -60,11 +120,7 @@ export const SearchBar = memo(({ onLocationSelect }: SearchBarProps) => {
     setIsLoading(true);
     try {
       const locations = await weatherService.searchLocation(searchQuery);
-      // Türkiye sonuçlarını önceliklendir
-      const prioritizedLocations = locations.filter(loc => loc.country === 'TR')
-        .concat(locations.filter(loc => loc.country !== 'TR'));
-      
-      setSuggestions(prioritizedLocations.slice(0, 5));
+      setSuggestions(locations.slice(0, 8)); // API'den gelen sıralamayı kullan
       setShowSuggestions(true);
     } catch (error) {
       console.error('Search error:', error);
@@ -76,11 +132,12 @@ export const SearchBar = memo(({ onLocationSelect }: SearchBarProps) => {
   };
 
   // Debounced search to prevent too many API calls
-  const debouncedSearch = useDebounce(handleSearch, 300);
+  const debouncedSearch = useDebounce(handleSearch, 250); // Biraz daha hızlı yap
 
   const handleLocationSelect = (location: LocationData) => {
+    const formatted = formatLocationDisplay(location);
     onLocationSelect(location.lat, location.lon);
-    setQuery(`${location.name}, ${location.country}`);
+    setQuery(formatted.fullName);
     setShowSuggestions(false);
     setSuggestions([]);
   };
@@ -103,7 +160,7 @@ export const SearchBar = memo(({ onLocationSelect }: SearchBarProps) => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             type="text"
-            placeholder="Şehir ara..."
+            placeholder="Şehir, ilçe veya bölge ara... (örn: Çayırova, Kocaeli)"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -127,32 +184,40 @@ export const SearchBar = memo(({ onLocationSelect }: SearchBarProps) => {
       {showSuggestions && suggestions.length > 0 && (
         <Card className="absolute top-full left-0 right-0 mt-2 glass border-white/20 z-50">
           <div className="p-2">
-            {suggestions.map((location, index) => (
-              <button
-                key={`${location.lat}-${location.lon}-${index}`}
-                onClick={() => handleLocationSelect(location)}
-                className="w-full text-left p-3 rounded-lg hover:bg-white/10 transition-smooth group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="font-medium text-foreground group-hover:text-white transition-colors">
-                      {location.name}
+            {suggestions.map((location, index) => {
+              const formatted = formatLocationDisplay(location);
+              return (
+                <button
+                  key={`${location.lat}-${location.lon}-${index}`}
+                  onClick={() => handleLocationSelect(location)}
+                  className="w-full text-left p-3 rounded-lg hover:bg-white/10 transition-smooth group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium text-foreground group-hover:text-white transition-colors">
+                        {formatted.primary}
+                        {location.country === 'TR' && location.state && location.state !== location.name && (
+                          <span className="text-primary font-normal"> / {location.state}</span>
+                        )}
+                      </div>
+                      <div className="text-sm text-muted-foreground group-hover:text-white/80">
+                        {formatted.secondary}
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground group-hover:text-white/80">
-                      {location.state && `${location.state}, `}
-                      <span className={location.country === 'TR' ? 'font-medium text-primary' : ''}>
-                        {getCountryName(location.country)}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      {location.country === 'TR' && (
+                        <div className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">
+                          TR
+                        </div>
+                      )}
+                      <div className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                        {Math.round(location.lat * 100) / 100}°, {Math.round(location.lon * 100) / 100}°
+                      </div>
                     </div>
                   </div>
-                  {location.country === 'TR' && (
-                    <div className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
-                      TR
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </Card>
       )}

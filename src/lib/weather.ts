@@ -62,37 +62,95 @@ export const weatherService = {
     const cached = getCachedData(cacheKey);
     if (cached) return cached;
 
-    const response = await fetch(
-      `${GEO_URL}/direct?q=${encodeURIComponent(query)}&limit=10&appid=${API_KEY}`
+    // Çoklu arama stratejisi: hem direkt hem de reverse geocoding
+    const [directResults, reverseResults] = await Promise.all([
+      // Ana arama
+      fetch(`${GEO_URL}/direct?q=${encodeURIComponent(query)}&limit=15&appid=${API_KEY}`)
+        .then(res => res.ok ? res.json() : [])
+        .catch(() => []),
+      
+      // Ek arama: Türkiye'ye özel daha geniş arama
+      query.length > 2 ? 
+        fetch(`${GEO_URL}/direct?q=${encodeURIComponent(query + ', Turkey')}&limit=10&appid=${API_KEY}`)
+          .then(res => res.ok ? res.json() : [])
+          .catch(() => []) : 
+        Promise.resolve([])
+    ]);
+
+    // Sonuçları birleştir ve dublicatları temizle
+    const allLocations = [...directResults, ...reverseResults];
+    const uniqueLocations = allLocations.filter((location, index, self) => 
+      index === self.findIndex(l => 
+        Math.abs(l.lat - location.lat) < 0.01 && 
+        Math.abs(l.lon - location.lon) < 0.01
+      )
     );
     
-    if (!response.ok) {
-      throw new Error('Konum arama başarısız');
-    }
-    
-    const locations = await response.json();
-    
-    // Türkiye'deki şehirleri önceliklendir ve sonuçları sırala
-    const sortedLocations = locations
-      .sort((a: LocationData, b: LocationData) => {
-        // Türkiye'deki şehirleri önce göster
+    // Gelişmiş sıralama algoritması
+    const sortedLocations = uniqueLocations
+      .map(location => ({
+        ...location,
+        // Arama uygunluk skoru hesapla
+        relevanceScore: this.calculateRelevanceScore(location, query)
+      }))
+      .sort((a, b) => {
+        // Önce Türkiye'deki sonuçlar
         if (a.country === 'TR' && b.country !== 'TR') return -1;
         if (b.country === 'TR' && a.country !== 'TR') return 1;
         
-        // İsim eşleşmesine göre sırala (exact match önce)
-        const queryLower = query.toLowerCase();
-        const aNameMatch = a.name.toLowerCase().includes(queryLower);
-        const bNameMatch = b.name.toLowerCase().includes(queryLower);
-        
-        if (aNameMatch && !bNameMatch) return -1;
-        if (bNameMatch && !aNameMatch) return 1;
-        
-        return 0;
+        // Sonra relevans skoruna göre
+        return b.relevanceScore - a.relevanceScore;
       })
-      .slice(0, 5); // En fazla 5 sonuç
+      .slice(0, 8); // Daha fazla sonuç göster
     
     setCachedData(cacheKey, sortedLocations);
     return sortedLocations;
+  },
+
+  // Arama uygunluk skoru hesaplama
+  calculateRelevanceScore(location: LocationData, query: string): number {
+    const queryLower = query.toLowerCase().trim();
+    const nameLower = location.name.toLowerCase();
+    const stateLower = location.state?.toLowerCase() || '';
+    
+    let score = 0;
+    
+    // Tam eşleşme en yüksek skor
+    if (nameLower === queryLower) score += 100;
+    
+    // İsim başlangıcı eşleşmesi
+    if (nameLower.startsWith(queryLower)) score += 50;
+    
+    // İsim içinde geçme
+    if (nameLower.includes(queryLower)) score += 25;
+    
+    // State/bölge eşleşmesi
+    if (stateLower.includes(queryLower)) score += 15;
+    
+    // Türkçe karakter desteği
+    const turkishQuery = this.normalizeTurkish(queryLower);
+    const turkishName = this.normalizeTurkish(nameLower);
+    
+    if (turkishName.includes(turkishQuery)) score += 10;
+    
+    // Popüler şehirler için bonus
+    const popularTurkishCities = ['istanbul', 'ankara', 'izmir', 'bursa', 'antalya', 'kocaeli'];
+    if (location.country === 'TR' && popularTurkishCities.includes(nameLower)) {
+      score += 5;
+    }
+    
+    return score;
+  },
+
+  // Türkçe karakter normalize etme
+  normalizeTurkish(text: string): string {
+    return text
+      .replace(/ğ/g, 'g')
+      .replace(/ü/g, 'u')
+      .replace(/ş/g, 's')
+      .replace(/ı/g, 'i')
+      .replace(/ö/g, 'o')
+      .replace(/ç/g, 'c');
   },
 
   async getCurrentPosition(): Promise<{ lat: number; lon: number }> {
